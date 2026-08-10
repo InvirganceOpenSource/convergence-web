@@ -111,6 +111,13 @@ public class QueryBinding implements Binding
         DBMS dbms = lookup();
         Query query = new Query(sql, parameters);
         
-        return dbms.query(query);
+        try
+        {
+            return dbms.query(query);
+        }
+        catch(ConvirganceException e)
+        {
+            throw new ConvirganceException("Error executing query against [" + jndiName + "]:\n" + sql, e);
+        }
     }
 }
