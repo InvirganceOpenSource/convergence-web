@@ -125,6 +125,8 @@ public class JavaEEServicesServlet extends HttpServlet
         HttpRequest request = new HttpRequest(servletRequest);
         HttpResponse response = new HttpResponse(servletResponse);
         
+        servletRequest.setCharacterEncoding("UTF-8"); // Ensure UTF-8 decoding
+        
         ServiceState.set("request", request);
         ServiceState.set("response", response);
         
