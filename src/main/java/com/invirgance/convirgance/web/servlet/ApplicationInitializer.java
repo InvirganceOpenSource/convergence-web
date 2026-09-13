@@ -64,6 +64,24 @@ public class ApplicationInitializer implements ServletContextListener
         return props;
     }
     
+    private DataSource getDataSource(Properties props, String name)
+    {
+        String url = props.getProperty("jdbc.database." + name + ".url");
+        String username = props.getProperty("jdbc.database." + name + ".username", "");
+        String password = props.getProperty("jdbc.database." + name + ".password", "");
+        
+        try
+        {
+            Class.forName("com.invirgance.convirgance.jdbc.datasource.DriverDataSource");
+        }
+        catch(Exception e)
+        {
+            throw new ConvirganceException("You must add convirgance-jdbc as a dependency to this project if you wish to use application.properties", e);
+        }
+        
+        return getDataSource(url, username, password);
+    }
+    
     private DataSource getDataSource(Properties props)
     {
         String url = props.getProperty("jdbc.database.url");
@@ -126,6 +144,24 @@ public class ApplicationInitializer implements ServletContextListener
             System.out.println("Intializing database data from file [" + props.getProperty("jdbc.init.sql.schema") + "]...");
             
             new DBMS(source).update(new Query(new ClasspathSource(props.getProperty("jdbc.init.sql.data"))));
+        }
+        
+        for(var prop : props.keySet())
+        {
+            var key = prop.toString();
+            var name = "";
+            
+            if(key.equals("jdbc.database.jndi")) continue;
+            if(!key.startsWith("jdbc.database.")) continue;
+            if(!key.endsWith(".jndi")) continue;
+
+            name = key.substring("jdbc.database.".length(), key.lastIndexOf(".jndi"));
+            source = getDataSource(props, name);
+
+            if(props.containsKey(key)) 
+            {
+                registerDataSource(source, props.getProperty(key));
+            }
         }
         
         System.out.println("Convirgance Web Services Application initialization complete");
